@@ -4,8 +4,8 @@ import com.cny.convert.MyAccessTokenConvert;
 import com.cny.service.UserDetailServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.jwt.crypto.sign.MacSigner;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -14,7 +14,6 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
@@ -46,7 +45,10 @@ public class OAuth2ServerConfig extends AuthorizationServerConfigurerAdapter {
      */
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        // 将客户端应用的信息保存在数据库中
         clients.jdbc(dataSource);
+
+        // 将客户端应用的信息保存在内存中
         /*clients.inMemory()
                 //设置客户端appid
                 .withClient("orderClient")
@@ -80,17 +82,19 @@ public class OAuth2ServerConfig extends AuthorizationServerConfigurerAdapter {
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         endpoints
                 .tokenStore(getTokenStore())
-                .accessTokenConverter(jwtAccessTokenConverter())
+                .accessTokenConverter(getJwtAccessTokenConverter())
                 .userDetailsService(userDetailService)
-                .authenticationManager(authenticationManager);
+                .authenticationManager(authenticationManager)
+                //设置访问token支持的方法
+                .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
     }
 
     private TokenStore getTokenStore() {
         //return new JdbcTokenStore(dataSource);
-        return new JwtTokenStore(jwtAccessTokenConverter());
+        return new JwtTokenStore(getJwtAccessTokenConverter());
     }
 
-    private JwtAccessTokenConverter jwtAccessTokenConverter() {
+    private JwtAccessTokenConverter getJwtAccessTokenConverter() {
         JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
         //设置签名密钥
         jwtAccessTokenConverter.setSigningKey("666888");

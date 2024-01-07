@@ -2,6 +2,7 @@ package com.cny.controller;
 
 import com.cny.entity.UserInfo;
 import com.cny.pojo.ResultBean;
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -19,11 +20,25 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 public class UserController {
 
+    /**
+     * 查询用户
+     *
+     * @param id
+     * @return
+     */
     @GetMapping("/{id}")
     public ResultBean<UserInfo> selectUserInfo(@PathVariable int id) {
-        return new ResultBean<>(200, new UserInfo(id, "andy", 25));
+        UserInfo userInfo = new UserInfo(id, "andy", 25);
+        log.info("查询用户信息：{}", userInfo.toString());
+        return new ResultBean<>(200, userInfo);
     }
 
+    /**
+     * 新建用户
+     *
+     * @param userInfo
+     * @return
+     */
     @PostMapping
     public ResultBean<String> createUser(@RequestBody UserInfo userInfo) {
         log.info("新建用户：{}", userInfo.toString());
